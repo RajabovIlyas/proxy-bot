@@ -1,0 +1,4 @@
+server:
+  telegramApiToken: "7410224273:AAHjGtAxLAQ3doLOQ75q_Ke3NcxQxw0V-WI"
+  port: "5000"
+  channelName: "@proxyag"

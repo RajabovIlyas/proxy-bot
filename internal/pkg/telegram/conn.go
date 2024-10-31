@@ -7,6 +7,9 @@ import (
 )
 
 func InitBot(cfgServer config.ServerConfig, logger zerolog.Logger) *tgbotapi.BotAPI {
+
+	tgbotapi.SetLogger(&logger)
+
 	bot, err := tgbotapi.NewBotAPI(cfgServer.TelegramApiToken)
 	if err != nil {
 		logger.Panic().Err(err).Msg("failed to init telegram bot")

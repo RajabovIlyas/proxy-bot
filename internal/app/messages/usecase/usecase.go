@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/RajabovIlyas/proxy-bot/config"
 	"github.com/RajabovIlyas/proxy-bot/internal/app/messages"
 	"github.com/RajabovIlyas/proxy-bot/internal/app/utils"
@@ -15,19 +16,28 @@ type messageUC struct {
 	logger zerolog.Logger
 }
 
+func (m messageUC) SendErrorMessage(update tgbotapi.Update, err error) {
+	m.logger.Warn().Err(err)
+
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Incorrect input!")
+
+	if _, err := m.bot.Send(msg); err != nil {
+		panic(err)
+	}
+}
+
 func (m messageUC) SetMessage(update tgbotapi.Update) {
+
+	if update.Message == nil {
+		m.SendErrorMessage(update, errors.New("incorrect input"))
+		return
+	}
 
 	proxy := update.Message.Text
 	proxyParams, err := utils.GetProxyUrlParams(proxy)
 
 	if err != nil {
-		m.logger.Warn().Err(err)
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Incorrect input!")
-
-		if _, err := m.bot.Send(msg); err != nil {
-			panic(err)
-		}
+		m.SendErrorMessage(update, err)
 		return
 	}
 

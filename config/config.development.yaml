@@ -1,0 +1,4 @@
+server:
+  telegramApiToken: "7580792732:AAFTQHiCQjLZw-SSAeO0dQJB3K3D9AeQobo"
+  port: "5000"
+  channelName: "@test_proxy_asdf"

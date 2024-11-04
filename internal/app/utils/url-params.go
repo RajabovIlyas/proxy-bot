@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 )
 
@@ -12,15 +11,8 @@ type ProxyParams struct {
 	Secret string
 }
 
-func GetProxyUrlParams(proxyUrl string) (ProxyParams, error) {
-	parsedURL, err := url.Parse(proxyUrl)
-	if err != nil {
-		return ProxyParams{}, err
-	}
-
-	if parsedURL.Scheme != "https" || parsedURL.Host != "t.me" || parsedURL.Path != "/proxy" {
-		return ProxyParams{}, fmt.Errorf("URL must have a scheme and host")
-	}
+func GetURLParams(proxyUrl string) (ProxyParams, error) {
+	parsedURL, _ := url.Parse(proxyUrl)
 
 	queryParams := parsedURL.Query()
 

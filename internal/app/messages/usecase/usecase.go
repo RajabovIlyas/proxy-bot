@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/RajabovIlyas/proxy-bot/config"
 	"github.com/RajabovIlyas/proxy-bot/internal/app/messages"
@@ -8,6 +9,7 @@ import (
 	"github.com/RajabovIlyas/proxy-bot/internal/pkg/buttons"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog"
+	"time"
 )
 
 type messageUC struct {
@@ -27,28 +29,44 @@ func (m messageUC) SendErrorMessage(update tgbotapi.Update, err error) {
 }
 
 func (m messageUC) SetMessage(update tgbotapi.Update) {
+	jsonData, err := json.MarshalIndent(update.Message, "", "  ")
+	if err != nil {
+		return
+	}
+
+	m.logger.Info().Msgf("Message: %v", string(jsonData))
 
 	if update.Message == nil {
 		m.SendErrorMessage(update, errors.New("incorrect input"))
 		return
 	}
 
-	proxy := update.Message.Text
-	proxyParams, err := utils.GetProxyUrlParams(proxy)
+	urls := utils.FilterURLs(update.Message)
 
-	if err != nil {
-		m.SendErrorMessage(update, err)
+	if len(urls) == 0 {
+		m.SendErrorMessage(update, errors.New("incorrect input"))
 		return
 	}
 
-	text := utils.GetMessageText(proxyParams, m.cfg.Server.ChannelName)
+	for _, url := range urls {
+		m.logger.Info().Msgf("len(%d): %v", len(urls), url)
+		proxyParams, err := utils.GetURLParams(url)
 
-	msg := tgbotapi.NewMessageToChannel(m.cfg.Server.ChannelName, text)
-	msg.ParseMode = tgbotapi.ModeHTML
-	msg.ReplyMarkup = buttons.CmdButtons(proxy)
+		if err != nil {
+			continue
+		}
 
-	if _, err := m.bot.Send(msg); err != nil {
-		panic(err)
+		text := utils.GetMessageText(proxyParams, m.cfg.Server.ChannelName)
+
+		msg := tgbotapi.NewMessageToChannel(m.cfg.Server.ChannelName, text)
+		msg.ParseMode = tgbotapi.ModeHTML
+		msg.ReplyMarkup = buttons.CmdButtons(url)
+
+		if _, err := m.bot.Send(msg); err != nil {
+			m.logger.Error().Err(err).Msg("Error sending message")
+			return
+		}
+		time.Sleep(time.Second)
 	}
 }
 

@@ -14,19 +14,8 @@ type messageHandlers struct {
 	messageUC messages.UseCase
 }
 
-func (m messageHandlers) InitMessageTGBot() {
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := m.bot.GetUpdatesChan(u)
-	// Loop through each update.
-	for update := range updates {
-		m.Messages(update)
-	}
-}
-
 func (m messageHandlers) Messages(update tgbotapi.Update) {
-	m.messageUC.SetMessage(update)
+	m.messageUC.SendMessage(update)
 }
 
 func NewMessageHandlers(messageUC messages.UseCase, bot *tgbotapi.BotAPI, cfg *config.Config, logger zerolog.Logger) messages.Handlers {

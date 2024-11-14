@@ -9,9 +9,20 @@ import (
 func FilterURLs(message *tgbotapi.Message) []string {
 	text := message.Text
 
-	entities := message.Entities
-
 	links := make([]string, 0)
+
+	inlineKeyboards := message.ReplyMarkup.InlineKeyboard
+
+	for _, inlineKeyboard := range inlineKeyboards {
+		for _, inlineKey := range inlineKeyboard {
+			if inlineKey.URL == nil {
+				continue
+			}
+			links = append(links, *inlineKey.URL)
+		}
+	}
+
+	entities := append(message.Entities, message.CaptionEntities...)
 
 	for _, entity := range entities {
 		if entity.Type != "text_link" {
